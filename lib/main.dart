@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
+import 'package:logistics/presentation/screens/auth/signin_page.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -34,6 +35,6 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return SigninPage();
   }
 }
