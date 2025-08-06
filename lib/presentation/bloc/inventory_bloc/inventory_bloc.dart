@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:logistics/core/services/firestore_service.dart';
@@ -9,6 +11,8 @@ part 'inventory_state.dart';
 
 class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   final FirestoreService _firestoreService;
+  StreamSubscription? _inventorySubscription;
+  StreamSubscription? _deliveriesSubscription;
 
   InventoryBloc({required FirestoreService firestoreService})
       : _firestoreService = firestoreService,
@@ -23,7 +27,8 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
 
   void _onLoadInventory(LoadInventory event, Emitter<InventoryState> emit) {
     emit(InventoryLoading());
-    _firestoreService.getInventory().listen((inventory) {
+    _inventorySubscription?.cancel();
+    _inventorySubscription = _firestoreService.getInventory().listen((inventory) {
       add(UpdateInventory(inventory));
     });
   }
@@ -46,9 +51,18 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
 
   void _onLoadDeliveries(LoadDeliveries event, Emitter<InventoryState> emit) {
     emit(InventoryLoading());
-    _firestoreService.getDeliveries(event.inventoryId).listen((deliveries) {
+    _deliveriesSubscription?.cancel();
+    _deliveriesSubscription =
+        _firestoreService.getDeliveries(event.inventoryId).listen((deliveries) {
       add(UpdateDeliveries(deliveries));
     });
+  }
+
+  @override
+  Future<void> close() {
+    _inventorySubscription?.cancel();
+    _deliveriesSubscription?.cancel();
+    return super.close();
   }
 }
 
