@@ -1,26 +1,40 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logistics/core/services/firebase_authentication.dart';
-import 'dart:developer';
+import 'package:logistics/domain/repositories/auth_repository.dart' as domain;
 
-class AuthRepository extends GetxController {
-  final FirebaseAuthenticationService _authService = FirebaseAuthenticationService();
+/// Data layer implementation of the authentication repository
+///
+/// This repository implements the domain layer interface and acts as an
+/// intermediary between the domain layer and the Firebase authentication service,
+/// handling data transformation and error mapping.
+class AuthRepository implements domain.AuthRepository {
+  final FirebaseAuthenticationService _authService;
 
-  void login(String email, String password) {
-    _authService
-        .signInWithEmail(email, password)
-        .then((user) {
-          if (user != null) {
-            // Handle successful login
-            log("Login successful: ${user.email}");
-          } else {
-            // Handle login failure
-            log("Login failed: Invalid email or password");
-          }
-        })
-        .catchError((error) {
-          // Handle error
-          log("Error during login: $error");
-        });
+  AuthRepository({required FirebaseAuthenticationService authService}) : _authService = authService;
+
+  @override
+  Future<User> signInWithEmail(String email, String password) async {
+    return await _authService.signInWithEmail(email, password);
   }
+
+  @override
+  Future<User> signUpWithEmail(String email, String password) async {
+    return await _authService.signUpWithEmail(email, password);
+  }
+
+  @override
+  Future<void> resetPassword(String email) async {
+    await _authService.resetPassword(email);
+  }
+
+  @override
+  Future<void> signOut() async {
+    await _authService.signOut();
+  }
+
+  @override
+  User? get currentUser => _authService.currentUser;
+
+  @override
+  Stream<User?> get authStateChanges => _authService.authStateChanges;
 }

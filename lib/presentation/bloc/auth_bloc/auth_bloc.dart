@@ -1,13 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logistics/core/services/firebase_authentication.dart';
+import 'package:logistics/domain/repositories/auth_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final FirebaseAuthenticationService _authService;
+  final AuthRepository _authRepository;
 
-  AuthBloc({required FirebaseAuthenticationService authService})
-    : _authService = authService,
+  AuthBloc({required AuthRepository authRepository})
+    : _authRepository = authRepository,
       super(AuthInitial()) {
     on<AuthLoginRequested>(_onAuthLoginRequested);
     on<AuthLogoutRequested>(_onAuthLogoutRequested);
@@ -16,13 +16,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onAuthLoginRequested(AuthLoginRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
     try {
-      final user = await _authService.signInWithEmail(event.email, event.password);
-      if (user != null) {
-        emit(AuthAuthenticated(user));
-      } else {
-        emit(AuthError('Invalid email or password'));
-      }
+      final user = await _authRepository.signInWithEmail(event.email, event.password);
+      emit(AuthAuthenticated(user));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -30,7 +27,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onAuthLogoutRequested(AuthLogoutRequested event, Emitter<AuthState> emit) async {
     try {
-      await _authService.signOut();
+      await _authRepository.signOut();
       emit(AuthUnauthenticated());
     } catch (e) {
       emit(AuthError(e.toString()));
@@ -42,7 +39,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     try {
-      await _authService.resetPassword(event.email);
+      await _authRepository.resetPassword(event.email);
       emit(AuthUnauthenticated());
     } catch (e) {
       emit(AuthError(e.toString()));
@@ -50,7 +47,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onAuthCheckStatus(AuthCheckStatus event, Emitter<AuthState> emit) async {
-    final user = _authService.getCurrentUser();
+    final user = _authRepository.currentUser;
     if (user != null) {
       emit(AuthAuthenticated(user));
     } else {

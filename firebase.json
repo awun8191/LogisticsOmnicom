@@ -1,1 +1,28 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"logistics-omnicom","appId":"1:608911186676:android:c69691730f646623671ca1","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"logistics-omnicom","configurations":{"android":"1:608911186676:android:c69691730f646623671ca1","web":"1:608911186676:web:fff3d824735abf93671ca1"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "logistics-omnicom",
+          "appId": "1:608911186676:android:c69691730f646623671ca1",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "logistics-omnicom",
+          "configurations": {
+            "android": "1:608911186676:android:c69691730f646623671ca1",
+            "web": "1:608911186676:web:fff3d824735abf93671ca1"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "nam5",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}
