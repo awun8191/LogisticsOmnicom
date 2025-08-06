@@ -18,6 +18,14 @@ class InventoryDetailDesktopPage extends StatelessWidget {
         appBar: AppBar(
           title: Text(inventoryItem.itemName),
         ),
+        floatingActionButton: Builder(builder: (context) {
+          return FloatingActionButton(
+            onPressed: () {
+              _showCreateDeliveryDialog(context, inventoryItem);
+            },
+            child: const Icon(Icons.add),
+          );
+        }),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -74,6 +82,63 @@ class InventoryDetailDesktopPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showCreateDeliveryDialog(BuildContext context, InventoryModel item) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final quantityController = TextEditingController();
+        final addressController = TextEditingController();
+        return AlertDialog(
+          title: const Text('Create Delivery'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Item: ${item.itemName}'),
+              Text('Available Quantity: ${item.quantity}'),
+              TextField(
+                controller: quantityController,
+                decoration: const InputDecoration(labelText: 'Quantity'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: addressController,
+                decoration: const InputDecoration(labelText: 'Address'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final deliveryDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                );
+                if (deliveryDate != null) {
+                  final delivery = DeliveryModel(
+                    inventoryId: item.id!,
+                    quantity: int.parse(quantityController.text),
+                    orderDate: DateTime.now(),
+                    deliveryDate: deliveryDate,
+                    address: addressController.text,
+                  );
+                  context.read<InventoryBloc>().add(CreateDelivery(delivery));
+                  Navigator.pop(dialogContext);
+                }
+              },
+              child: const Text('Create'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
