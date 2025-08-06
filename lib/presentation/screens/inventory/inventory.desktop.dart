@@ -21,11 +21,15 @@ class _DesktopInventoryPageState extends State<DesktopInventoryPage> {
         appBar: AppBar(
           title: const Text('Inventory'),
           actions: [
-            IconButton(
-              onPressed: () {
-                _showAddInventoryDialog(context);
-              },
-              icon: const Icon(Icons.add),
+            Builder(
+              builder: (context) {
+                return IconButton(
+                  onPressed: () {
+                    _showAddInventoryDialog(context);
+                  },
+                  icon: const Icon(Icons.add),
+                );
+              }
             ),
           ],
         ),
@@ -82,7 +86,7 @@ class _DesktopInventoryPageState extends State<DesktopInventoryPage> {
   void _showAddInventoryDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) {
+      builder: (dialogContext) {
         final poNumberController = TextEditingController();
         final itemNameController = TextEditingController();
         final quantityController = TextEditingController();
@@ -108,7 +112,7 @@ class _DesktopInventoryPageState extends State<DesktopInventoryPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel'),
             ),
             TextButton(
@@ -120,7 +124,7 @@ class _DesktopInventoryPageState extends State<DesktopInventoryPage> {
                   createdAt: DateTime.now(),
                 );
                 context.read<InventoryBloc>().add(AddInventory(inventory));
-                Navigator.pop(context);
+                Navigator.pop(dialogContext);
               },
               child: const Text('Add'),
             ),
