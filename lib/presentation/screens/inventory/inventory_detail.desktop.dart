@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logistics/core/di/injection_container.dart';
+import 'package:logistics/data/models/delivery_model.dart';
 import 'package:logistics/data/models/inventory_model.dart';
 import 'package:logistics/presentation/bloc/inventory_bloc/inventory_bloc.dart';
 import 'package:logistics/presentation/screens/inventory/order_detail.desktop.dart';
