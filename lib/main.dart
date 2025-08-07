@@ -6,13 +6,13 @@ import 'package:logistics/core/routes/app_pages.dart';
 import 'package:logistics/core/routes/app_routes.dart';
 import 'package:logistics/core/services/firebase_authentication.dart';
 import 'package:logistics/domain/repositories/auth_repository.dart';
+import 'package:logistics/domain/repositories/customer_order_repository.dart';
 import 'package:logistics/domain/repositories/invoice_repository.dart';
 import 'package:logistics/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:logistics/presentation/bloc/invoice_bloc/invoice_bloc.dart';
-import 'package:logistics/presentation/screens/auth/signin_page.dart';
 import 'firebase_options.dart';
 import "core/di/injection_container.dart" as di;
-import 'package:get/get.dart';
+// duplicate import cleanup
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +24,12 @@ void main() async {
     MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => AuthBloc(authRepository: di.sl<AuthRepository>())),
-        BlocProvider(create: (_) => InvoiceBloc(invoiceRepository: di.sl<InvoiceRepository>())),
+        BlocProvider(
+          create: (_) => InvoiceBloc(
+            invoiceRepository: di.sl<InvoiceRepository>(),
+            customerOrderRepository: di.sl<CustomerOrderRepository>(),
+          ),
+        ),
       ],
       child: MyApp(),
     ),

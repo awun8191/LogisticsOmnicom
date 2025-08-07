@@ -4,10 +4,14 @@ import 'package:logistics/core/services/firebase_authentication.dart';
 import 'package:logistics/core/services/firestore_service.dart';
 import 'package:logistics/data/repositories/auth_repository.dart';
 import 'package:logistics/data/repositories/invoice_repository.dart';
+import 'package:logistics/data/repositories/customer_order_repository_impl.dart';
 import 'package:logistics/domain/repositories/auth_repository.dart' as domain;
 import 'package:logistics/domain/repositories/invoice_repository.dart' as domain_invoice;
+import 'package:logistics/domain/repositories/customer_order_repository.dart'
+    as domain_customer_order;
 import 'package:logistics/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:logistics/presentation/bloc/invoice_bloc/invoice_bloc.dart';
+import 'package:logistics/presentation/bloc/customer_order_bloc/customer_order_bloc.dart';
 
 import '../../presentation/bloc/inventory_bloc/inventory_bloc.dart';
 
@@ -25,10 +29,27 @@ Future<void> initDI() async {
   sl.registerLazySingleton<domain_invoice.InvoiceRepository>(
     () => InvoiceRepositoryImpl(sl<FirestoreService>()),
   );
+  sl.registerLazySingleton<domain_customer_order.CustomerOrderRepository>(
+    () => CustomerOrderRepositoryImpl(
+      firestore: sl<FirebaseFirestore>(),
+      firestoreService: sl<FirestoreService>(),
+    ),
+  );
 
   // Register BLoC
   sl.registerFactory<AuthBloc>(() => AuthBloc(authRepository: sl<domain.AuthRepository>()));
   sl.registerFactory<InventoryBloc>(() => InventoryBloc(firestoreService: sl<FirestoreService>()));
+  sl.registerFactory<InvoiceBloc>(
+    () => InvoiceBloc(
+      invoiceRepository: sl<domain_invoice.InvoiceRepository>(),
+      customerOrderRepository: sl<domain_customer_order.CustomerOrderRepository>(),
+    ),
+  );
+  sl.registerFactory<CustomerOrderBloc>(
+    () => CustomerOrderBloc(
+      customerOrderRepository: sl<domain_customer_order.CustomerOrderRepository>(),
+    ),
+  );
 
   // Register Firebase
   sl.registerLazySingleton<FirebaseFirestore>(() => FirebaseFirestore.instance);

@@ -16,29 +16,26 @@ class InventoryDetailDesktopPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => sl<InventoryBloc>()..add(LoadDeliveries(inventoryItem.id!)),
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(inventoryItem.itemName),
+        appBar: AppBar(title: Text(inventoryItem.itemName)),
+        floatingActionButton: Builder(
+          builder: (context) {
+            return FloatingActionButton(
+              onPressed: () {
+                _showCreateDeliveryDialog(context, inventoryItem);
+              },
+              child: const Icon(Icons.add),
+            );
+          },
         ),
-        floatingActionButton: Builder(builder: (context) {
-          return FloatingActionButton(
-            onPressed: () {
-              _showCreateDeliveryDialog(context, inventoryItem);
-            },
-            child: const Icon(Icons.add),
-          );
-        }),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('PO Number: ${inventoryItem.poNumber}'),
-              Text('Initial Quantity: ${inventoryItem.quantity}'),
+              Text('Initial Quantity: ${inventoryItem.originalQuantity}'),
               const SizedBox(height: 16),
-              const Text(
-                'Deliveries',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+              const Text('Deliveries', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Expanded(
                 child: BlocBuilder<InventoryBloc, InventoryState>(
@@ -48,9 +45,7 @@ class InventoryDetailDesktopPage extends StatelessWidget {
                     }
                     if (state is DeliveriesLoaded) {
                       if (state.deliveries.isEmpty) {
-                        return const Center(
-                          child: Text('No deliveries found for this item.'),
-                        );
+                        return const Center(child: Text('No deliveries found for this item.'));
                       }
                       return ListView.builder(
                         itemCount: state.deliveries.length,
@@ -98,7 +93,7 @@ class InventoryDetailDesktopPage extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('Item: ${item.itemName}'),
-              Text('Available Quantity: ${item.quantity}'),
+              Text('Available Quantity: ${item.balance}'),
               TextField(
                 controller: quantityController,
                 decoration: const InputDecoration(labelText: 'Quantity'),
@@ -111,10 +106,7 @@ class InventoryDetailDesktopPage extends StatelessWidget {
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
             TextButton(
               onPressed: () async {
                 final deliveryDate = await showDatePicker(

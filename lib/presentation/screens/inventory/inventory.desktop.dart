@@ -98,7 +98,7 @@ class _DesktopInventoryPageState extends State<DesktopInventoryPage> {
 
         if (state is InventoryLoaded) {
           totalItems = state.inventory.length;
-          totalQuantity = state.inventory.fold(0, (sum, item) => sum + item.quantity);
+          totalQuantity = state.inventory.fold(0, (sum, item) => sum + item.balance);
         }
 
         return Row(
@@ -126,7 +126,7 @@ class _DesktopInventoryPageState extends State<DesktopInventoryPage> {
             ),
             _buildStatCard('Total Items', totalItems.toString(), Icons.inventory_2_outlined),
             const SizedBox(width: 16),
-            _buildStatCard('Total Quantity', totalQuantity.toString(), Icons.numbers_outlined),
+            _buildStatCard('Total Balance', totalQuantity.toString(), Icons.numbers_outlined),
           ],
         );
       },
@@ -357,8 +357,8 @@ class _DesktopInventoryPageState extends State<DesktopInventoryPage> {
         columns: const [
           DataColumn(label: Text('PO Number'), tooltip: 'Purchase Order Number'),
           DataColumn(label: Text('Item Name'), tooltip: 'Product or item name'),
-          DataColumn(label: Text('Quantity'), numeric: true, tooltip: 'Available quantity'),
-          DataColumn(label: Text('Created'), tooltip: 'Date added to inventory'),
+          DataColumn(label: Text('Balance'), numeric: true, tooltip: 'Available balance'),
+          DataColumn(label: Text('Order Date'), tooltip: 'Date order was placed'),
           DataColumn(label: Text('Actions')),
         ],
         rows: inventory.map((item) {
@@ -382,20 +382,20 @@ class _DesktopInventoryPageState extends State<DesktopInventoryPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: item.quantity > 10
+                    color: item.balance > 10
                         ? Colors.green[50]
-                        : item.quantity > 0
+                        : item.balance > 0
                         ? Colors.orange[50]
                         : Colors.red[50],
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    item.quantity.toString(),
+                    item.balance.toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: item.quantity > 10
+                      color: item.balance > 10
                           ? Colors.green[700]
-                          : item.quantity > 0
+                          : item.balance > 0
                           ? Colors.orange[700]
                           : Colors.red[700],
                     ),
@@ -403,7 +403,7 @@ class _DesktopInventoryPageState extends State<DesktopInventoryPage> {
                 ),
               ),
               DataCell(
-                Text(_formatDate(item.createdAt), style: TextStyle(color: Colors.grey[600])),
+                Text(_formatDate(item.orderDate), style: TextStyle(color: Colors.grey[600])),
               ),
               DataCell(
                 Row(
@@ -453,111 +453,170 @@ class _DesktopInventoryPageState extends State<DesktopInventoryPage> {
   }
 
   void _showInventoryDialog(BuildContext context, InventoryModel? item) {
-    final isEditing = item != null;
-    final poNumberController = TextEditingController(text: item?.poNumber ?? '');
-    final itemNameController = TextEditingController(text: item?.itemName ?? '');
-    final quantityController = TextEditingController(text: item?.quantity.toString() ?? '');
-    final formKey = GlobalKey<FormState>();
-
     showDialog(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(isEditing ? 'Edit Inventory Item' : 'Add New Inventory Item'),
-          content: Form(
-            key: formKey,
-            child: SizedBox(
-              width: 400,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: poNumberController,
-                    decoration: const InputDecoration(
-                      labelText: 'PO Number',
-                      hintText: 'Enter purchase order number',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.receipt_long_outlined),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'PO Number is required';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: itemNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Item Name',
-                      hintText: 'Enter item name',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.inventory_2_outlined),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Item name is required';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: quantityController,
-                    decoration: const InputDecoration(
-                      labelText: 'Quantity',
-                      hintText: 'Enter quantity',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.numbers_outlined),
-                    ),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Quantity is required';
-                      }
-                      final quantity = int.tryParse(value);
-                      if (quantity == null || quantity < 0) {
-                        return 'Please enter a valid quantity';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  final inventory = InventoryModel(
-                    poNumber: poNumberController.text.trim(),
-                    itemName: itemNameController.text.trim(),
-                    quantity: int.parse(quantityController.text),
-                    createdAt: item?.createdAt ?? DateTime.now(),
-                  );
+      builder: (dialogContext) => _InventoryDialog(item: item),
+    );
+  }
+}
 
-                  if (isEditing) {
-                    // context.read<InventoryBloc>().add(UpdateInventory(inventory));
-                  } else {
-                    context.read<InventoryBloc>().add(AddInventory(inventory));
+class _InventoryDialog extends StatefulWidget {
+  final InventoryModel? item;
+  const _InventoryDialog({required this.item});
+
+  @override
+  State<_InventoryDialog> createState() => _InventoryDialogState();
+}
+
+class _InventoryDialogState extends State<_InventoryDialog> {
+  late final TextEditingController poNumberController;
+  late final TextEditingController itemNameController;
+  late final TextEditingController originalQuantityController;
+  late final TextEditingController balanceController;
+  final formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    poNumberController = TextEditingController(text: widget.item?.poNumber ?? '');
+    itemNameController = TextEditingController(text: widget.item?.itemName ?? '');
+    originalQuantityController = TextEditingController(
+      text: widget.item != null ? widget.item!.originalQuantity.toString() : '',
+    );
+    balanceController = TextEditingController(
+      text: widget.item != null ? widget.item!.balance.toString() : '',
+    );
+  }
+
+  @override
+  void dispose() {
+    poNumberController.dispose();
+    itemNameController.dispose();
+    originalQuantityController.dispose();
+    balanceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEditing = widget.item != null;
+    return AlertDialog(
+      title: Text(isEditing ? 'Edit Inventory Item' : 'Add New Inventory Item'),
+      content: Form(
+        key: formKey,
+        child: SizedBox(
+          width: 400,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: poNumberController,
+                decoration: const InputDecoration(
+                  labelText: 'PO Number',
+                  hintText: 'Enter purchase order number',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.receipt_long_outlined),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'PO Number is required';
                   }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: itemNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Item Name',
+                  hintText: 'Enter item name',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.inventory_2_outlined),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Item name is required';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: originalQuantityController,
+                decoration: const InputDecoration(
+                  labelText: 'Original Quantity',
+                  hintText: 'Enter original quantity',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.numbers_outlined),
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Original quantity is required';
+                  }
+                  final quantity = int.tryParse(value);
+                  if (quantity == null || quantity < 0) {
+                    return 'Please enter a valid quantity';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: balanceController,
+                decoration: const InputDecoration(
+                  labelText: 'Balance',
+                  hintText: 'Enter current balance',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.balance_outlined),
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Balance is required';
+                  }
+                  final balance = int.tryParse(value);
+                  if (balance == null || balance < 0) {
+                    return 'Please enter a valid balance';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        ElevatedButton(
+          onPressed: () {
+            if (formKey.currentState!.validate()) {
+              final now = DateTime.now();
+              final inventory = InventoryModel(
+                id: widget.item?.id,
+                poNumber: poNumberController.text.trim(),
+                itemName: itemNameController.text.trim(),
+                originalQuantity: int.parse(originalQuantityController.text),
+                balance: int.parse(balanceController.text),
+                orderDate: widget.item?.orderDate ?? now,
+                deliveryDate: widget.item?.deliveryDate ?? now,
+                createdAt: widget.item?.createdAt ?? now,
+              );
 
-                  Navigator.pop(dialogContext);
-                }
-              },
-              child: Text(isEditing ? 'Update' : 'Add'),
-            ),
-          ],
-        );
-      },
-    ).then((_) {
-      poNumberController.dispose();
-      itemNameController.dispose();
-      quantityController.dispose();
-    });
+              if (isEditing) {
+                context.read<InventoryBloc>().add(UpdateInventory([inventory]));
+              } else {
+                context.read<InventoryBloc>().add(AddInventory(inventory));
+              }
+
+              Navigator.pop(context);
+            }
+          },
+          child: Text(isEditing ? 'Update' : 'Add'),
+        ),
+      ],
+    );
   }
 }

@@ -9,31 +9,63 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @override
   Future<void> createInvoice(InvoiceModel invoice) async {
-    for (final item in invoice.items) {
-      final inventorySnapshot = await _firestoreService.getInventoryByName(item.name);
-      if (inventorySnapshot.docs.isEmpty) {
-        throw Exception('Inventory item not found: ${item.name}');
-      }
-
-      final inventoryDoc = inventorySnapshot.docs.first;
-      final inventoryData = inventoryDoc.data() as Map<String, dynamic>;
-      final currentQuantity = inventoryData['quantity'] as int;
-
-      if (currentQuantity < item.quantity) {
-        throw Exception('Not enough stock for ${item.name}. Available: $currentQuantity, Required: ${item.quantity}');
-      }
+    // If the invoice is created from an order, the order flow already adjusted inventory
+    if (invoice.customerOrderId != null) {
+      await _firestoreService.createInvoice(invoice);
+      return;
     }
 
-    // After checking all items, create the invoice and update inventory
-    final invoiceRef = await _firestoreService.createInvoice(invoice);
+    // Standalone invoice: adjust inventory in a transaction and write ledger entries
+    await _firestoreService.createInvoiceAndAdjustInventory(invoice);
+  }
 
-    for (final item in invoice.items) {
-      final inventorySnapshot = await _firestoreService.getInventoryByName(item.name);
-      final inventoryDoc = inventorySnapshot.docs.first;
-      final inventoryData = inventoryDoc.data() as Map<String, dynamic>;
-      final currentQuantity = inventoryData['quantity'] as int;
-      final newQuantity = currentQuantity - item.quantity;
-      await _firestoreService.updateInventoryQuantity(inventoryDoc.id, newQuantity);
-    }
+  @override
+  Future<List<InvoiceModel>> getAllInvoices() async {
+    return await _firestoreService.getAllInvoices();
+  }
+
+  @override
+  Future<InvoiceModel?> getInvoiceById(String id) async {
+    return await _firestoreService.getInvoiceById(id);
+  }
+
+  @override
+  Future<List<InvoiceModel>> getInvoicesByStatus(String status) async {
+    return await _firestoreService.getInvoicesByStatus(status);
+  }
+
+  @override
+  Future<List<InvoiceModel>> getInvoicesByCustomer(String customerName) async {
+    return await _firestoreService.getInvoicesByCustomer(customerName);
+  }
+
+  @override
+  Future<List<InvoiceModel>> searchInvoices(String query) async {
+    return await _firestoreService.searchInvoices(query);
+  }
+
+  @override
+  Future<void> updateInvoice(InvoiceModel invoice) async {
+    await _firestoreService.updateInvoice(invoice);
+  }
+
+  @override
+  Future<void> updateInvoiceStatus(String id, String status) async {
+    await _firestoreService.updateInvoiceStatus(id, status);
+  }
+
+  @override
+  Future<void> deleteInvoice(String id) async {
+    await _firestoreService.deleteInvoice(id);
+  }
+
+  @override
+  Stream<List<InvoiceModel>> watchInvoices() {
+    return _firestoreService.watchInvoices();
+  }
+
+  @override
+  Stream<List<InvoiceModel>> watchInvoicesByStatus(String status) {
+    return _firestoreService.watchInvoicesByStatus(status);
   }
 }

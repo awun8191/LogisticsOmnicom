@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'invoice_list.mobile.dart';
-import 'invoice_list.desktop.dart';
+import 'customer_orders_list.mobile.dart';
+import 'customer_orders_list.desktop.dart';
 
-class InvoicePage extends StatelessWidget {
-  const InvoicePage({super.key});
+class CustomerOrdersPage extends StatelessWidget {
+  const CustomerOrdersPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +12,7 @@ class InvoicePage extends StatelessWidget {
             defaultTargetPlatform == TargetPlatform.windows ||
             defaultTargetPlatform == TargetPlatform.macOS ||
             defaultTargetPlatform == TargetPlatform.linux
-        ? const DesktopInvoiceListPage()
-        : const MobileInvoiceListPage();
+        ? const DesktopCustomerOrdersListPage()
+        : const MobileCustomerOrdersListPage();
   }
 }

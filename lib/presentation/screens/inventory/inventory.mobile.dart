@@ -18,9 +18,7 @@ class _MobileInventoryPageState extends State<MobileInventoryPage> {
     return BlocProvider(
       create: (context) => sl<InventoryBloc>()..add(LoadInventory()),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Inventory'),
-        ),
+        appBar: AppBar(title: const Text('Inventory')),
         body: BlocBuilder<InventoryBloc, InventoryState>(
           builder: (context, state) {
             if (state is InventoryLoading) {
@@ -34,7 +32,7 @@ class _MobileInventoryPageState extends State<MobileInventoryPage> {
                   return ListTile(
                     title: Text(item.itemName),
                     subtitle: Text('PO: ${item.poNumber}'),
-                    trailing: Text('Qty: ${item.quantity}'),
+                    trailing: Text('Qty: ${item.originalQuantity}'),
                     onTap: () {
                       _showCreateDeliveryDialog(context, item);
                     },
@@ -86,16 +84,16 @@ class _MobileInventoryPageState extends State<MobileInventoryPage> {
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             TextButton(
               onPressed: () {
                 final inventory = InventoryModel(
                   poNumber: poNumberController.text,
                   itemName: itemNameController.text,
-                  quantity: int.parse(quantityController.text),
+                  originalQuantity: int.parse(quantityController.text),
+                  balance: int.parse(quantityController.text),
+                  orderDate: DateTime.now(),
+                  deliveryDate: DateTime.now(),
                   createdAt: DateTime.now(),
                 );
                 context.read<InventoryBloc>().add(AddInventory(inventory));
@@ -121,7 +119,7 @@ class _MobileInventoryPageState extends State<MobileInventoryPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('Item: ${item.itemName}'),
-              Text('Available Quantity: ${item.quantity}'),
+              Text('Available Quantity: ${item.balance}'),
               TextField(
                 controller: quantityController,
                 decoration: const InputDecoration(labelText: 'Quantity'),
@@ -134,10 +132,7 @@ class _MobileInventoryPageState extends State<MobileInventoryPage> {
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             TextButton(
               onPressed: () async {
                 final deliveryDate = await showDatePicker(
