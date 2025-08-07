@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logistics/data/models/delivery_model.dart';
 import 'package:logistics/data/models/inventory_model.dart';
+import 'package:logistics/data/models/invoice_model.dart';
+import 'package:logistics/data/models/order_model.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore;
@@ -20,11 +22,35 @@ class FirestoreService {
       if (inventory.quantity < delivery.quantity) {
         throw Exception('Not enough inventory');
       }
-
       final newQuantity = inventory.quantity - delivery.quantity;
       transaction.update(inventoryRef, {'quantity': newQuantity});
       transaction.set(_firestore.collection('deliveries').doc(), delivery.toFirestore());
     });
+  }
+
+  Future<DocumentReference> createInvoice(InvoiceModel invoice) async {
+    try {
+      final docRef = await _firestore.collection('invoices').add(invoice.toMap());
+      return docRef;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<QuerySnapshot> getInventoryByName(String name) async {
+    try {
+      return await _firestore.collection('inventory').where('name', isEqualTo: name).get();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateInventoryQuantity(String docId, int newQuantity) async {
+    try {
+      await _firestore.collection('inventory').doc(docId).update({'quantity': newQuantity});
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Stream<List<InventoryModel>> getInventory() {

@@ -10,22 +10,24 @@ class DesktopDashboardPage extends StatefulWidget {
 }
 
 class _DesktopDashboardStatePage extends State<DesktopDashboardPage> {
-  @override
   final _dashController = Get.find<DashboardController>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        children: [
-          NavigationRail(
-            leading: Icon(Icons.abc),
-            backgroundColor: Theme.of(context).colorScheme.secondary,
-            groupAlignment: 0.00,
-            destinations: _dashController.destinations,
-            selectedIndex: _dashController.selectedIndex.value,
-          ),
-          Expanded(child: _dashController.pages[_dashController.selectedIndex.value]),
-        ],
+      body: Obx(
+        () => Row(
+          children: [
+            NavigationRail(
+              leading: const Icon(Icons.abc),
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+              groupAlignment: 0.00,
+              onDestinationSelected: _dashController.chenageSelectedIndex,
+              destinations: _dashController.destinations,
+              selectedIndex: _dashController.selectedIndex.value,
+            ),
+            Expanded(child: _dashController.pages[_dashController.selectedIndex.value]),
+          ],
+        ),
       ),
     );
   }
