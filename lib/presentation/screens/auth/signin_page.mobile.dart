@@ -43,19 +43,24 @@ class _MobileSignInPageState extends State<MobileSignInPage> {
           if (state is AuthError) {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: Colors.red));
+            ).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
           } else if (state is AuthAuthenticated) {
             Navigator.pushReplacementNamed(context, '/dashboard');
           }
         },
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFFE0A8F0), // Light purple
-                Color(0xFF8B5FBF), // Darker purple
+                Theme.of(context).colorScheme.primaryContainer,
+                Theme.of(context).colorScheme.primary,
               ],
             ),
           ),
@@ -92,11 +97,11 @@ class _MobileSignInPageState extends State<MobileSignInPage> {
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1A1A1A),
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withOpacity(0.25),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -106,22 +111,22 @@ class _MobileSignInPageState extends State<MobileSignInPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
+                          Text(
                             'Sign In',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 32),
 
                           // Email field
-                          const Text(
+                          Text(
                             'Email',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -145,10 +150,10 @@ class _MobileSignInPageState extends State<MobileSignInPage> {
                           const SizedBox(height: 20),
 
                           // Password field
-                          const Text(
+                          Text(
                             'Password',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -208,9 +213,12 @@ class _MobileSignInPageState extends State<MobileSignInPage> {
                                   );
                                 }
                               },
-                              child: const Text(
+                              child: Text(
                                 'Forgot password?',
-                                style: TextStyle(color: Colors.white70, fontSize: 14),
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
                           ),
@@ -223,8 +231,8 @@ class _MobileSignInPageState extends State<MobileSignInPage> {
                               return ElevatedButton(
                                 onPressed: state is AuthLoading ? null : _handleSignIn,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.black,
+                                  backgroundColor: Theme.of(context).colorScheme.primary,
+                                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -232,12 +240,13 @@ class _MobileSignInPageState extends State<MobileSignInPage> {
                                   elevation: 0,
                                 ),
                                 child: state is AuthLoading
-                                    ? const SizedBox(
+                                    ? SizedBox(
                                         height: 20,
                                         width: 20,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                              Theme.of(context).colorScheme.onPrimary),
                                         ),
                                       )
                                     : const Text(
@@ -254,18 +263,20 @@ class _MobileSignInPageState extends State<MobileSignInPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text(
+                              Text(
                                 "Don't have an account? ",
-                                style: TextStyle(color: Colors.grey),
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                ),
                               ),
                               GestureDetector(
                                 onTap: () {
                                   Navigator.pushNamed(context, '/signup');
                                 },
-                                child: const Text(
+                                child: Text(
                                   'Sign up',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: Theme.of(context).colorScheme.primary,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -308,24 +319,25 @@ class _CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: colorScheme.onSurface),
       validator: validator,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(color: Colors.grey),
+        hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
         filled: true,
-        fillColor: const Color(0xFF2A2A2A),
+        fillColor: colorScheme.surfaceVariant,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.white, width: 1),
+          borderSide: BorderSide(color: colorScheme.primary, width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         suffixIcon: suffixIcon,
