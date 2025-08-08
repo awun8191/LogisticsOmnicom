@@ -12,7 +12,6 @@ import 'package:logistics/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:logistics/presentation/bloc/invoice_bloc/invoice_bloc.dart';
 import 'firebase_options.dart';
 import "core/di/injection_container.dart" as di;
-// duplicate import cleanup
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,10 +46,9 @@ class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    final authservice = di.sl<FirebaseAuthenticationService>();
-    authservice.authStateChanges.listen((user) {
+    final authService = di.sl<FirebaseAuthenticationService>();
+    authService.authStateChanges.listen((user) {
       if (user != null) {
         // User is signed in
         Get.toNamed(AppRoutes.dashboard);
@@ -65,6 +63,10 @@ class _MyAppState extends State<MyApp> {
     return GetMaterialApp(
       title: 'Logistics',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8B5FBF)),
+        useMaterial3: true,
+      ),
       initialRoute: AppRoutes.initial,
       getPages: AppRouter.routes,
     );
